@@ -1,3 +1,5 @@
+// App.js
+
 import React, { Component } from 'react';
 import axios from 'axios';
 import Searchbar from './Searchbar/Searchbar';
@@ -17,6 +19,8 @@ class App extends Component {
     isLoading: false,
     showModal: false,
     modalImage: '',
+    imageBuffer: [], // Bufor zdjęć
+    currentIndex: 0,
   };
 
   // Funkcja do obsługi formularza wyszukiwania
@@ -26,7 +30,7 @@ class App extends Component {
 
   // Funkcja do ładowania obrazków z API
   fetchImages = () => {
-    const { query, page } = this.state;
+    const { query, page, images, imageBuffer } = this.state;
     const URL = `https://pixabay.com/api/?q=${query}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`;
 
     this.setState({ isLoading: true });
@@ -34,9 +38,23 @@ class App extends Component {
     axios
       .get(URL)
       .then(response => {
+        const newImages = response.data.hits.filter(
+          image =>
+            !images.includes(image) &&
+            !imageBuffer.includes(image.largeImageURL)
+        );
+
         this.setState(prevState => ({
-          images: [...prevState.images, ...response.data.hits],
+          images: [...prevState.images, ...newImages],
           page: prevState.page + 1,
+        }));
+
+        // Dodaj nowe obrazy do bufora
+        this.setState(prevState => ({
+          imageBuffer: [
+            ...prevState.imageBuffer,
+            ...newImages.map(image => image.largeImageURL),
+          ],
         }));
       })
       .catch(error => console.error(error))
@@ -47,7 +65,16 @@ class App extends Component {
 
   // Funkcja do otwierania modala z dużą wersją obrazka
   openModal = src => {
-    this.setState({ showModal: true, modalImage: src });
+    const { imageBuffer, images } = this.state;
+    const currentIndex = images.findIndex(image => image.largeImageURL === src);
+    this.setState({ showModal: true, modalImage: src, currentIndex });
+
+    // Jeśli obraz nie jest w buforze, załaduj go
+    if (!imageBuffer.includes(src)) {
+      this.setState(prevState => ({
+        imageBuffer: [...prevState.imageBuffer, src],
+      }));
+    }
   };
 
   // Funkcja do zamykania modala
@@ -55,8 +82,28 @@ class App extends Component {
     this.setState({ showModal: false, modalImage: '' });
   };
 
+  // Funkcja do przewijania zdjęć w modalu
+  handleNext = () => {
+    const { currentIndex, imageBuffer } = this.state;
+    if (currentIndex < imageBuffer.length - 1) {
+      this.setState(prevState => ({
+        currentIndex: prevState.currentIndex + 1,
+      }));
+    }
+  };
+
+  handlePrev = () => {
+    const { currentIndex } = this.state;
+    if (currentIndex > 0) {
+      this.setState(prevState => ({
+        currentIndex: prevState.currentIndex - 1,
+      }));
+    }
+  };
+
   render() {
-    const { images, isLoading, showModal, modalImage } = this.state;
+    const { images, isLoading, showModal, modalImage, currentIndex } =
+      this.state;
 
     return (
       <div className="App">
@@ -76,7 +123,14 @@ class App extends Component {
           <Button onClick={this.fetchImages} disabled={isLoading} />
         )}
         {showModal && (
-          <Modal src={modalImage} alt="Large Image" onClose={this.closeModal} />
+          <Modal
+            src={images.map(image => image.largeImageURL)}
+            alt="Large Image"
+            onClose={this.closeModal}
+            onNext={this.handleNext}
+            onPrev={this.handlePrev}
+            currentIndex={currentIndex}
+          />
         )}
       </div>
     );

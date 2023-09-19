@@ -1,11 +1,51 @@
-import React from 'react';
+// Modal.js
 
-const Modal = ({ onClose, src, alt }) => (
-  <div className="overlay" onClick={onClose}>
-    <div className="modal">
-      <img src={src} alt={alt} />
+import React, { useEffect } from 'react';
+import styles from './Modal.module.css'; // Zaimportuj arkusz stylów
+
+const Modal = ({ onClose, src, alt, onNext, onPrev, currentIndex }) => {
+  useEffect(() => {
+    const handleEscape = event => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    const handleArrowKeys = event => {
+      if (event.key === 'ArrowLeft') {
+        onPrev();
+      } else if (event.key === 'ArrowRight') {
+        onNext();
+      }
+    };
+
+    window.addEventListener('keydown', handleEscape);
+    window.addEventListener('keydown', handleArrowKeys);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('keydown', handleArrowKeys);
+    };
+  }, [onClose, onNext, onPrev]);
+
+  // Dodaj klasę 'modal-open' do ciała strony po otwarciu modala
+  useEffect(() => {
+    document.body.classList.add('modal-open');
+
+    return () => {
+      // Usuń klasę 'modal-open' po zamknięciu modala
+      document.body.classList.remove('modal-open');
+    };
+  }, []);
+
+  return (
+    <div className={`${styles.overlay} ${styles.active}`} onClick={onClose}>
+      <div className={styles.modal}>
+        {src.length > 0 && <img src={src[currentIndex]} alt={alt} />}
+     
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Modal;

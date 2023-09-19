@@ -1,0 +1,34 @@
+/* modal.module.css */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(255, 255, 255, 0.8); /* Białe tło z lekkim przezroczystym efektem */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ustal odpowiedni z-index, aby umożliwić modułowi znajdować się na wierzchu */
+}
+
+.modal {
+  background-color: transparent; /* Ustaw przezroczyste tło */
+  padding: 110px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  text-align: center; /* Wycentrowanie zawartości modalu */
+  pointer-events: none; /* Wyłącz obsługę zdarzeń na modalu */
+}
+
+.modal.active {
+  background-color: white; /* Przywróć kolor tła po aktywowaniu modala */
+  pointer-events: auto; /* Włącz obsługę zdarzeń po aktywowaniu modala */
+}
+
+/* Styl obrazka */
+.modal img {
+  max-width: 50%; /* Obrazek będzie miał maksymalną szerokość 50% szerokości modalu */
+  height: auto; /* Dostosuj wysokość zachowując proporcje */
+}

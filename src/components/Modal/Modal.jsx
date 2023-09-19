@@ -28,12 +28,12 @@ const Modal = ({ onClose, src, alt, onNext, onPrev, currentIndex }) => {
     };
   }, [onClose, onNext, onPrev]);
 
-  // Dodaj klasę 'modal-open' do ciała strony po otwarciu modala
+
   useEffect(() => {
     document.body.classList.add('modal-open');
 
     return () => {
-      // Usuń klasę 'modal-open' po zamknięciu modala
+
       document.body.classList.remove('modal-open');
     };
   }, []);

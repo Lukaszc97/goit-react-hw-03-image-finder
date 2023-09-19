@@ -1,5 +1,3 @@
-// App.js
-
 import React, { Component } from 'react';
 import axios from 'axios';
 import Searchbar from './Searchbar/Searchbar';
@@ -18,19 +16,25 @@ class App extends Component {
     page: 1,
     isLoading: false,
     showModal: false,
-    modalImage: '',
-    imageBuffer: [], // Bufor zdjęć
+    imageBuffer: [],
+    allImagesLoaded: false,
     currentIndex: 0,
   };
 
-  // Funkcja do obsługi formularza wyszukiwania
   handleSubmit = query => {
-    this.setState({ query, images: [], page: 1 }, this.fetchImages);
+    this.setState(
+      { query, images: [], page: 1, allImagesLoaded: false },
+      this.fetchImages
+    );
   };
 
-  // Funkcja do ładowania obrazków z API
   fetchImages = () => {
-    const { query, page, images, imageBuffer } = this.state;
+    const { query, page, images, imageBuffer, allImagesLoaded } = this.state;
+
+    if (allImagesLoaded) {
+      return;
+    }
+
     const URL = `https://pixabay.com/api/?q=${query}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`;
 
     this.setState({ isLoading: true });
@@ -44,12 +48,16 @@ class App extends Component {
             !imageBuffer.includes(image.largeImageURL)
         );
 
+        if (newImages.length === 0) {
+          this.setState({ allImagesLoaded: true });
+          return;
+        }
+
         this.setState(prevState => ({
           images: [...prevState.images, ...newImages],
           page: prevState.page + 1,
         }));
 
-        // Dodaj nowe obrazy do bufora
         this.setState(prevState => ({
           imageBuffer: [
             ...prevState.imageBuffer,
@@ -63,47 +71,38 @@ class App extends Component {
       });
   };
 
-  // Funkcja do otwierania modala z dużą wersją obrazka
   openModal = src => {
-    const { imageBuffer, images } = this.state;
+    const { images } = this.state;
     const currentIndex = images.findIndex(image => image.largeImageURL === src);
-    this.setState({ showModal: true, modalImage: src, currentIndex });
-
-    // Jeśli obraz nie jest w buforze, załaduj go
-    if (!imageBuffer.includes(src)) {
-      this.setState(prevState => ({
-        imageBuffer: [...prevState.imageBuffer, src],
-      }));
-    }
+    this.setState({ showModal: true, currentIndex });
   };
 
-  // Funkcja do zamykania modala
   closeModal = () => {
-    this.setState({ showModal: false, modalImage: '' });
+    this.setState({ showModal: false });
   };
 
-  // Funkcja do przewijania zdjęć w modalu
   handleNext = () => {
     const { currentIndex, imageBuffer } = this.state;
-    if (currentIndex < imageBuffer.length - 1) {
-      this.setState(prevState => ({
-        currentIndex: prevState.currentIndex + 1,
-      }));
+    const lastIndex = imageBuffer.length - 1;
+    let nextIndex = currentIndex + 1;
+    if (nextIndex > lastIndex) {
+      nextIndex = 0;
     }
+    this.setState({ currentIndex: nextIndex });
   };
 
   handlePrev = () => {
-    const { currentIndex } = this.state;
-    if (currentIndex > 0) {
-      this.setState(prevState => ({
-        currentIndex: prevState.currentIndex - 1,
-      }));
+    const { currentIndex, imageBuffer } = this.state;
+    const lastIndex = imageBuffer.length - 1;
+    let prevIndex = currentIndex - 1;
+    if (prevIndex < 0) {
+      prevIndex = lastIndex;
     }
+    this.setState({ currentIndex: prevIndex });
   };
 
   render() {
-    const { images, isLoading, showModal, modalImage, currentIndex } =
-      this.state;
+    const { images, isLoading, showModal, currentIndex } = this.state;
 
     return (
       <div className="App">
@@ -119,7 +118,7 @@ class App extends Component {
           ))}
         </ImageGallery>
         {isLoading && <Loader />}
-        {images.length > 0 && !isLoading && (
+        {images.length > 0 && !isLoading && !this.state.allImagesLoaded && (
           <Button onClick={this.fetchImages} disabled={isLoading} />
         )}
         {showModal && (

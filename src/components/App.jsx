@@ -16,9 +16,8 @@ class App extends Component {
     page: 1,
     isLoading: false,
     showModal: false,
-    imageBuffer: [],
+    modalImageSrc: '',
     allImagesLoaded: false,
-    currentIndex: 0,
   };
 
   handleSubmit = query => {
@@ -29,7 +28,7 @@ class App extends Component {
   };
 
   fetchImages = () => {
-    const { query, page, images, imageBuffer, allImagesLoaded } = this.state;
+    const { query, page, images, allImagesLoaded } = this.state;
 
     if (allImagesLoaded) {
       return;
@@ -43,9 +42,7 @@ class App extends Component {
       .get(URL)
       .then(response => {
         const newImages = response.data.hits.filter(
-          image =>
-            !images.includes(image) &&
-            !imageBuffer.includes(image.largeImageURL)
+          image => !images.includes(image)
         );
 
         if (newImages.length === 0) {
@@ -57,13 +54,6 @@ class App extends Component {
           images: [...prevState.images, ...newImages],
           page: prevState.page + 1,
         }));
-
-        this.setState(prevState => ({
-          imageBuffer: [
-            ...prevState.imageBuffer,
-            ...newImages.map(image => image.largeImageURL),
-          ],
-        }));
       })
       .catch(error => console.error(error))
       .finally(() => {
@@ -72,37 +62,15 @@ class App extends Component {
   };
 
   openModal = src => {
-    const { images } = this.state;
-    const currentIndex = images.findIndex(image => image.largeImageURL === src);
-    this.setState({ showModal: true, currentIndex });
+    this.setState({ showModal: true, modalImageSrc: src });
   };
 
   closeModal = () => {
     this.setState({ showModal: false });
   };
 
-  handleNext = () => {
-    const { currentIndex, imageBuffer } = this.state;
-    const lastIndex = imageBuffer.length - 1;
-    let nextIndex = currentIndex + 1;
-    if (nextIndex > lastIndex) {
-      nextIndex = 0;
-    }
-    this.setState({ currentIndex: nextIndex });
-  };
-
-  handlePrev = () => {
-    const { currentIndex, imageBuffer } = this.state;
-    const lastIndex = imageBuffer.length - 1;
-    let prevIndex = currentIndex - 1;
-    if (prevIndex < 0) {
-      prevIndex = lastIndex;
-    }
-    this.setState({ currentIndex: prevIndex });
-  };
-
   render() {
-    const { images, isLoading, showModal, currentIndex } = this.state;
+    const { images, isLoading, showModal, modalImageSrc } = this.state;
 
     return (
       <div className="App">
@@ -123,12 +91,9 @@ class App extends Component {
         )}
         {showModal && (
           <Modal
-            src={images.map(image => image.largeImageURL)}
+            src={modalImageSrc}
             alt="Large Image"
             onClose={this.closeModal}
-            onNext={this.handleNext}
-            onPrev={this.handlePrev}
-            currentIndex={currentIndex}
           />
         )}
       </div>

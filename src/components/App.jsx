@@ -16,7 +16,6 @@ class App extends Component {
     showModal: false,
     modalImageSrc: '',
     allImagesLoaded: false,
-    disabled: false
   };
 
   handleSubmit = query => {
@@ -62,7 +61,7 @@ class App extends Component {
   };
 
   render() {
-    const { images, isLoading, disabled, showModal, modalImageSrc, allImagesLoaded } =
+    const { images, isLoading, showModal, modalImageSrc, allImagesLoaded } =
       this.state;
 
     return (
@@ -82,14 +81,12 @@ class App extends Component {
         {images.length > 0 && !isLoading && !allImagesLoaded && (
           <Button onClick={this.fetchImages} disabled={isLoading} />
         )}
-        
-        
-        {allImagesLoaded && (
-          <p style={{ textAlign: 'center' }}>All images loaded.</p>
-        )}
 
-        {isLoading && <Loader />}
-        {allImagesLoaded}
+        {allImagesLoaded ? (
+          <p style={{ textAlign: 'center' }}>All images loaded.</p>
+        ) : (
+          isLoading && <Loader />
+        )}
 
         {showModal && (
           <Modal

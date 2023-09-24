@@ -1,13 +1,11 @@
 import React, { Component } from 'react';
-import axios from 'axios';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import ImageGalleryItem from './ImageGalleryItem/ImageGalleryItem';
 import Button from './Button/Button';
 import Loader from './Loader/Loader';
 import Modal from './Modal/Modal';
-
-const API_KEY = '38011218-cb164cf0dde7e2df63faecdfa';
+import { fetchImages } from './api';
 
 class App extends Component {
   state = {
@@ -18,6 +16,7 @@ class App extends Component {
     showModal: false,
     modalImageSrc: '',
     allImagesLoaded: false,
+    disabled: false
   };
 
   handleSubmit = query => {
@@ -34,16 +33,9 @@ class App extends Component {
       return;
     }
 
-    const URL = `https://pixabay.com/api/?q=${query}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`;
-
-    this.setState({ isLoading: true });
-
-    axios
-      .get(URL)
-      .then(response => {
-        const newImages = response.data.hits.filter(
-          image => !images.includes(image)
-        );
+    fetchImages(query, page)
+      .then(data => {
+        const newImages = data.hits.filter(image => !images.includes(image));
 
         if (newImages.length === 0) {
           this.setState({ allImagesLoaded: true });
@@ -70,7 +62,8 @@ class App extends Component {
   };
 
   render() {
-    const { images, isLoading, showModal, modalImageSrc } = this.state;
+    const { images, isLoading, disabled, showModal, modalImageSrc, allImagesLoaded } =
+      this.state;
 
     return (
       <div className="App">
@@ -86,9 +79,18 @@ class App extends Component {
           ))}
         </ImageGallery>
         {isLoading && <Loader />}
-        {images.length > 0 && !isLoading && !this.state.allImagesLoaded && (
+        {images.length > 0 && !isLoading && !allImagesLoaded && (
           <Button onClick={this.fetchImages} disabled={isLoading} />
         )}
+        
+        
+        {allImagesLoaded && (
+          <p style={{ textAlign: 'center' }}>All images loaded.</p>
+        )}
+
+        {isLoading && <Loader />}
+        {allImagesLoaded}
+
         {showModal && (
           <Modal
             src={modalImageSrc}

@@ -1,5 +1,3 @@
-/* modal.module.css */
-
 .overlay {
   position: fixed;
   top: 0;
@@ -20,12 +18,12 @@
 }
 
 .modal.active {
-  background-color: white; /* Przywróć kolor tła po aktywowaniu modala */
-  pointer-events: auto; /* Włącz obsługę zdarzeń po aktywowaniu modala */
+  background-color: white; 
+  pointer-events: auto; 
 }
 
-/* Styl obrazka */
+
 .modal img {
-  max-width: 50%; /* Obrazek będzie miał maksymalną szerokość 50% szerokości modalu */
-  height: auto; /* Dostosuj wysokość zachowując proporcje */
+  max-width: 50%; 
+  height: auto; 
 }
